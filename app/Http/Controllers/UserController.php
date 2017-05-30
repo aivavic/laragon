@@ -13,6 +13,7 @@ use App\User;
 use App\Role;
 use DB;
 use Hash;
+use Redis;
 
 class UserController extends Controller
 {
@@ -75,7 +76,14 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::find($id);
+
+        if(Redis::exists("user:{$id}")){
+            $user = Redis::get("user:{$id}");
+        } else {
+            $user = User::find($id);
+            Redis::set("user:{$id}", $user);
+        }
+        return response()->json($user, 201);
         return view('users.show',compact('user'));
     }
 
